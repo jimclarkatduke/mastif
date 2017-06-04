@@ -1,4 +1,4 @@
-# gjam
-data sets and examples
+# mast
+data sets
 
-for import by gjam vignettes in R
+for import by mast vignettes in R
