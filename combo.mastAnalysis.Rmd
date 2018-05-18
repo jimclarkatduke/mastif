@@ -9,17 +9,37 @@ output:
 ---
 
 
+```{r, echo=F}
+#this is a test
+
+username <- function() 
+{ 
+readline("Please enter username:  ")
+} 
+user <- username()
+print(paste0("proceeding as ", user))
+```
+
+
 ```{r getFiles, eval = T, echo=T}
-Rcpp::sourceCpp('../RcppFunctions/cppFns.cpp')
-source('../RFunctions/mastifFunctions.r')
+if(user == "chase"){
+  Rcpp::sourceCpp('/Volumes/clark/clark.unix/makeMast/RcppFunctions/cppFns.cpp')
+  source('/Volumes/clark/clark.unix/makeMast/RFunctions/mastifFunctions.r')
+    } else{
+      Rcpp::sourceCpp('/Volumes/clark/clark.unix/makeMast/RcppFunctions/cppFns.cpp')
+      source('../RFunctions/mastifFunctions.r')
+      }
 ```
 
 
 ```{r readDF, eval=F, echo=F}
 
-path  <- "../dataFiles/"
+if(user == "chase"){
+    path <- "/Volumes/clark/clark.unix/allocationmodel/datafiles/"
+    } else{
+      path  <- "../dataFiles/"
+      }
 
-path <- "/Volumes/Research/clark/clark.unix/allocationmodel/datafiles/"
 
 years       <- 1991:2018
 
@@ -42,6 +62,7 @@ changeNames <- rbind( cbind('ulmuUNKN','ulmuAlat'),
                       cbind('acerUNKN','acerRubr'),
                       cbind('acerrubr','acerRubr'))
 colnames(changeNames) <- c('from','to')
+
 ```
 
 
@@ -62,7 +83,7 @@ trapCols <- c("plot","trapID","trap","x","y","UTMx","UTMy","elev")
 
 trapID <- 'trapnum'
 
-path <- "/nas/clark/clark.unix/allocationmodel/datafiles/"
+#path <- "/nas/clark/clark.unix/allocationmodel/datafiles/"
 
 
 plots <- c('CW_118', 'CW_218', 'CW_318', 'CW_427', 'CW_527', 'CW_LG','CW_UG',
@@ -108,9 +129,17 @@ for(i in 1:length(genera)){
     if(length(yrDat) == 0)next
     
     
-    tmp <- .seedFormat(sfile, lfile, trapFile = '../dataFiles/seedTrapArea.txt',
+    if(user =="chase"){
+       tmp <- .seedFormat(sfile, lfile, trapFile = '/Volumes/clark/clark.unix/makeMast/datafiles/seedTrapArea.txt',
                        genusName = genusName, omitNames = omitNames,
                        plot = plots[j], trapID = trapID )
+      }else{
+        tmp <- .seedFormat(sfile, lfile, trapFile = '../datafiles/seedTrapArea.txt',
+                       genusName = genusName, omitNames = omitNames,
+                       plot = plots[j], trapID = trapID )
+    }
+    
+    
     if(length(tmp) == 0)next
     
     seedNames <- sort(unique(c(seedNames, tmp$seedNames)))
@@ -179,10 +208,18 @@ for(i in 1:length(genera)){
   treeData[,c('diam','canopy','growth')] <- 
              round( treeData[,c('diam','canopy','growth')], 2 )
   
-  save(treeData, seedData, specNames, seedNames, 
+  if( user == "chase"){
+    save(treeData, seedData, specNames, seedNames, 
+       xytree, xytrap, plotj, years, # M, 
+       file=paste('/Volumes/clark/clark.unix/makeMast/compressedFiles/clarkLab/', genFull[i],'.Rdata',sep='') )
+  print(seedNames)
+    
+  } else{
+    save(treeData, seedData, specNames, seedNames, 
        xytree, xytrap, plotj, years, # M, 
        file=paste('../compressedFiles/clarkLab/', genFull[i],'.Rdata',sep='') )
   print(seedNames)
+  }
 }
 ```
 
@@ -190,7 +227,11 @@ plot dimensions are here:
 
 ```{r fig.width=6, fig.height=6, fig.align='center'}
 
-path <- '../compressedFiles'
+if(user == "chase"){
+  path <- '/Volumes/clark/clark.unix/makeMast/compressedFiles'
+  } else{
+    path <- '../compressedFiles'
+  }
 folders <- list.files(path)
 
 xynames <- c('x','y')
@@ -281,8 +322,14 @@ for(j in 1:length(genera)){
 traitTable for seed mass
 
 ```{r}
-priorVals  <- read.table('../dataFiles/priorParameters.txt',header=T)
-traitTable <- read.table('traitTable.txt',header=T)
+if(user =="chase"){
+  priorVals  <- read.table('/Volumes/clark/clark.unix/makeMast/dataFiles/priorParameters.txt',header=T)
+  traitTable <- read.table('/Volumes/clark/clark.unix/makeMast/vignettes/traitTable.txt',header=T)
+  }else{
+    priorVals  <- read.table('../dataFiles/priorParameters.txt',header=T)
+    traitTable <- read.table('traitTable.txt',header=T)
+}
+
 ```
 
 DON'T RUN: Is there an output file?
@@ -353,9 +400,6 @@ write.table(plotDims, file='../plotDims.txt', quote=F)
 Build combined files and build plotArea
 
 ```{r fit}
-# quercus
-
-
 #skip <- c('acer')
 badSeed <- c('fraxCaro')
 notUsed <- c('IMMA')
@@ -366,6 +410,8 @@ tcols <- c('plot','tree','species','year','repr','diam')
 scols <- c('plot','trap','year','area')
 xy1n  <- c('plot','tree','x','y')
 xy2n  <- c('plot','trap','x','y')
+
+skip <- 'acer'
 
 for(j in 1:length(genera)){
   
@@ -379,8 +425,14 @@ for(j in 1:length(genera)){
   seed <- spec <- character(0)
   nf <- length(gfolders[[j]])
   
-  plotDims <- read.table('../plotDims.txt', header=T)
-  plotArea <- read.table('../plotArea.txt', header=T)
+  if(user == "chase"){
+    plotDims <- read.table('/Volumes/clark/clark.unix/makeMast/plotDims.txt', header=T)
+    plotArea <- read.table('/Volumes/clark/clark.unix/makeMast/plotArea.txt', header=T)
+    }else{
+      plotDims <- read.table('../plotDims.txt', header=T)
+      plotArea <- read.table('../plotArea.txt', header=T)
+      }
+  
   colnames(plotArea) <- .replaceString(colnames(plotArea),'X','')
   
   for(k in 1:nf){
@@ -514,506 +566,570 @@ for(j in 1:length(genera)){
   
   
   ##################### save combined data
-  cfile <- paste('../combinedSites/',genus,'.Rdata',sep='')
+  if(user =="chase"){
+    cfile <- paste('/Volumes/clark/clark.unix/makeMast/combinedSites/',genus,'.Rdata',sep='')
+  }else{
+    cfile <- paste('../combinedSites/',genus,'.Rdata',sep='')
+  }
+  
   
   save( treeData, seedData, xytree, xytrap, seedNames, specNames,
-        plotArea, plotDims, file=cfile)
+        plotArea, plotDims, plotj, file=cfile) #added plot j 05/15/2018
   #########################
   
 }
 ```
 
+```{r}
+#combine above data with GEE covariates
 
+#pulling flowering timing information
+#pulling google earth engine (GEE) covariate datasets
 
+  if(user =="chase"){
+    flowering <- read.csv("/Volumes/clark/clark.unix/makeMast/dataFiles/updated.spp.2018.csv")
+    priorVals  <- read.table('/Volumes/clark/clark.unix/makeMast/dataFiles/priorParameters.txt',header=T)
+    terr.data <- read.csv("/Volumes/clark/clark.unix/makeMast/dataFiles/all_mast.csv")
+    pet.data <- read.csv("/Volumes/clark/clark.unix/makeMast/dataFiles/eto_mast.csv")
+    pr.data <- read.csv("/Volumes/clark/clark.unix/makeMast/dataFiles/pr_mast.csv")
+    tmax.data <- read.csv("/Volumes/clark/clark.unix/makeMast/dataFiles/tmax_mast.csv")
+    tmin.data <- read.csv("/Volumes/clark/clark.unix/makeMast/dataFiles/tmin_mast.csv")
+  }else{
+    flowering <- read.csv('../dataFiles/updated.spp.2018.csv')
+    priorVals <- read.table('../dataFiles/priorParameters.txt',header=T)
+    terr.data <- read.csv("../dataFiles/all_mast.csv")
+    pet.data <- read.csv("../dataFiles/eto_mast.csv")
+    pr.data <- read.csv("../dataFiles/pr_mast.csv")
+    tmax.data <- read.csv("../dataFiles/tmax_mast.csv")
+    tmin.data <- read.csv("../dataFiles/tmin_mast.csv")
+  }
+
+all.covs <- list()
+
+#matching GEE data and treedata by GEEID
+tmp.data <- pet.data[,2:ncol(pet.data)] #CHECK TO SEE IF THIS IS THE SAME FOR ALL COVARIATE DATASETS. it should be
+geeIDVector <- pet.data[,1]
+
+yrID<- substr(colnames(tmp.data), 4,7)
+uniqueYears<- unique(yrID)
+moID<- substr(colnames(tmp.data), nchar(colnames(tmp.data)), nchar(colnames(tmp.data))) 
+              
+              yrMat<- matrix(yrID, nrow=nrow(tmp.data), ncol=ncol(tmp.data),byrow=T)
+              moMat<- matrix(moID, nrow=nrow(tmp.data), ncol=ncol(tmp.data),byrow=T)
+              geeIDMat<- matrix(geeIDVector, nrow=nrow(tmp.data), ncol=ncol(tmp.data),byrow=F) ### geeIDVector is just the column removed from the petMat
+              
+              yrMat[1:2,1:2] # should say 1, 1
+             # 1, 1
+              
+              moMat[1:2,1:2]  # should say 1, 2
+              #1, 2
+              
+              geeIDMat[1:2,1:2]  # should say 1, 1
+              #2, 2
+              
+              #climatic water availability index, P - PET
+              yearlyPETO <- aggregate(as.numeric(as.vector(as.matrix(pr.data[,-1] - pet.data[,-1]))), by=list(geeID=as.vector(geeIDMat), year=as.vector(yrMat)), sum) #sum instead of mean bc we want year end water balance to campare accross years, not average monthly
+              yearlyPETO$IDyear <- IDyear <- paste0(yearlyPETO$geeID,'_', yearlyPETO$year)
+              colnames(yearlyPETO) <- c("geeID","year","mean.annual.PETO","IDyear")
+              
+              #tmin 
+              yearlytmin <- aggregate(as.numeric(as.vector(as.matrix(tmin.data[,-1]))), by=list(geeID=as.vector(geeIDMat), year=as.vector(yrMat)), mean)
+              yearlytmin$IDyear <- IDyear <- paste0(yearlytmin$geeID,'_', yearlytmin$year)
+              colnames(yearlytmin) <- c("geeID","year","mean.annual.tmin","IDyear")
+              
+              #tmax
+              yearlytmax <- aggregate(as.numeric(as.vector(as.matrix(tmax.data[,-1]))), by=list(geeID=as.vector(geeIDMat), year=as.vector(yrMat)), mean)
+              yearlytmax$IDyear <- IDyear <- paste0(yearlytmax$geeID,'_', yearlytmax$year)
+              colnames(yearlytmax) <- c("geeID","year","mean.annual.tmax","IDyear")
+              
+              # adding all toeather with terr.data
+              test <- merge(yearlyPETO, yearlytmin, by = "IDyear")
+              test2 <- merge(test, yearlytmax, by = "IDyear")
+              test3 <- merge(terr.data, test2, by = "geeID")
+              drops <- c("geeID.x","year.x","geeID.y","year.y")
+all.covs[[1]] <- merged.covs <- test3[ , !(names(test3) %in% drops)] #merged.covs are all the annual mean covaraites for every tree
+names(all.covs)[[1]] <- "merged.covs"        
+
+#now making species specific covariates based on seed set time and flowering time. This is going to be a beast
+  #first going to tackle seed set time, floweing time should be more or less identical, and will appear after this section
+              
+              #for each data set i
+              data.sets <- c("pet.data","pr.data","tmax.data","tmin.data")
+              annual.data.sets <- c("yearlyPETO","yearlytmin","yearlytmax")
+              
+              #and each species within that data set j
+              spp.names <- c('abies','acer','ailanthus','amelanchier','betula','carpinus',
+                             'carya','celtis','cercis','chionanthus','cornus','fagus','fraxinus',
+                             'ilex','juniperus','liquidambar','liriodendron','magnolia',
+                             'morus','nyssa','ostrya','oxydendron','picea','pinus','prunus',
+                             'quercus','robinia','sassafras','sorbus','tilia','tsuga','ulmus')
+              data.abbrs <- c("eto","pr", "tmax", "tmin")
+              data.years <- c(1979:2017)
+              merged.covs.w.lag <- merged.covs
+              
+              #lag annual covs
+              lag.annual.covs <- list()
+              for(j in 1:length(spp.names)){
+    
+                  if(user =="chase"){
+                  load(paste0('/Volumes/clark/clark.unix/makeMast/combinedSites/',spp.names[j],'.Rdata'))
+                  }else{
+                  load(paste0('../combinedSites/',spp.names[j],'.Rdata'))
+                  }
+                treeData$geeID <- paste0(treeData$plot,"_",treeData$tree)
+                treeData$IDyear <- paste0(treeData$geeID,"_",treeData$year)
+                
+                #add lag covaraites
+                #P-ET0
+                mm<-match(paste0(treeData$IDyear), IDyear)
+                mm.minus1<- match(paste0(treeData$geeID, '_', treeData$year-1), IDyear)
+                mm.minus2<- match(paste0(treeData$geeID, '_', treeData$year-2), IDyear)
+                sp.lag.covs <- as.data.frame(matrix(NA, nrow = nrow(treeData), ncol = length(annual.data.sets)*3+1))
+                sp.lag.covs[,1] <- treeData$IDyear
+                colnames(sp.lag.covs) <- c("IDyear", "yearlyPETO.t", "yearlyPETO.tmin1", "yearlyPETO.tmin2","yearlytmin.t", "yearlytmin.tmin1", "yearlytmin.tmin2","yearlytmax.t","yearlytmax.tmin1","yearlytmax.tmin2")
+                l <- 2
+                k <- 4
+                for(p in 1:length(annual.data.sets)){
+                  defDesign<- matrix(NA, nrow=nrow(treeData), ncol=3)
+                  cov.data.iq <- get(annual.data.sets[p])
+                  cov.data.col.iq <- cov.data.iq[,3]
+                  defDesign[,1]<- cov.data.col.iq[mm]
+                  defDesign[,2]<- cov.data.col.iq[mm.minus1]
+                  defDesign[,3]<- cov.data.col.iq[mm.minus2]
+                  
+                  colnames(defDesign)<- c(paste0(annual.data.sets[p],".t"), paste0(annual.data.sets[p],".tmin1"), paste0(annual.data.sets[p],".tmin2")) # add species specific predictors depending on flowering times/seed set times.
+                  #treeData<- as.data.frame(cbind(treeData$IDyear, defDesign))
+                  #colnames(treeData)[1] <- "IDyear"
+                  sp.lag.covs[,l:k] <- defDesign
+                  l <- l+3
+                  k <- k+3
+                }
+                lag.annual.covs[[j]] <- sp.lag.covs
+              }
+lag.covs <- lag.annual.covs
+names(lag.covs) <- spp.names
+all.covs[[2]] <- lag.covs
+names(all.covs)[[2]] <- "lag.covs" #works up to here
+              
+              #open a species spefic treeData file from ClarkLab
+              spp.specific.annual.mean.cov.vals <- list()
+              for(j in 1:length(spp.names)){
+                
+                if(user =="chase"){
+                  load(paste0('/Volumes/clark/clark.unix/makeMast/combinedSites/',spp.names[j],'.Rdata'))
+                  }else{
+                  load(paste0('../combinedSites/',spp.names[j],'.Rdata'))
+                  }
+                
+                treeData$geeID <- paste0(treeData$plot,"_",treeData$tree)
+                treeData$IDyear <- paste0(treeData$geeID,"_",treeData$year)
+                this.spp.cov<- list()
+                #create a vector with the geeID of 
+                  for(i in 1:length(data.sets)){
+                    
+                    data.iq <- as.data.frame(get(paste0(data.sets[i])))
+                    
+                #subset the rows of dataset i by all individuals of species j that are within dataset i
+                    reduced.data <- subset(data.iq, data.iq[,1] %in% treeData$geeID)
+                
+                #average values from dataset i for species j's flowering season
+                    treeData$f.start <- flowering$f.start[ match(treeData$species, flowering$long.code)]
+                    treeData$f.end <- flowering$f.end[ match(treeData$species, flowering$long.code)]
+                    f.series <- treeData[1, "f.start"] :  treeData[1, "f.end"] #flowering time
+                    
+                #average values from dataset i for species j's seed setting season
+                    treeData$d.start <- flowering$d.start[ match(treeData$species, flowering$long.code)]
+                    s.series <- treeData[1, "f.end"] :  treeData[1, "d.start"] #seed set season defoined by end of flowering to the start of dispersal. This could be changed with more theory. 
+                    
+                #creating a vector of column names to pull from dataset i
+                    a <- data.abbrs[i]
+                    names.vec <- NULL
+                    counter <- 1
+                    
+                      for(k in 1:length(data.years)){
+                      b <- data.years[k]
+                        for(m in 1:length(s.series)){
+                          c <- s.series[m]
+                            if (c <= 9){
+                              c <- paste0("0",c)
+                            } else{
+                              c <- paste0(c)
+                            }
+                          col.tmp <- paste0(a,b,"_",c)
+                          names.vec[counter] <- col.tmp
+                          counter <- counter+1
+                        }
+                      }
+                    
+                  #further reducing data to columns that match this species seed set times
+                    more.reduced.data <- reduced.data[,names.vec]
+                    mean.reduced.data <- matrix(NA, nrow = nrow(more.reduced.data), ncol = length(data.years), dimnames = list(reduced.data$geeID, data.years))
+                    cols.iq <- 1:length(s.series)
+                    
+                        for(n in 1:nrow(mean.reduced.data)){
+                            for(g in 1:length(data.years)){
+                              #if cols iq <= 1 then take the value, if >1, take mean
+                              if (length(s.series) < 2){
+                                mean.reduced.data[n,g] <- more.reduced.data[n,cols.iq]
+                              } else{
+                                mean.reduced.data[n,g] <- rowMeans(more.reduced.data[n,cols.iq])
+                              }
+                                cols.iq <- cols.iq + length(s.series)
+                            }
+                          cols.iq <- 1:length(s.series)
+                        }
+                    mean.reduced.data <- as.data.frame(mean.reduced.data)
+                    mean.reduced.data$IDyear <- rownames(mean.reduced.data)
+                    this.spp.cov[[i]] <- mean.reduced.data
+                  }
+                names(this.spp.cov) <- data.sets
+                spp.specific.annual.mean.cov.vals[[j]] <- this.spp.cov
+              }
+seed.set.covs <- spp.specific.annual.mean.cov.vals
+names(seed.set.covs) <- spp.names
+all.covs[[3]] <- seed.set.covs
+names(all.covs)[[3]] <- "seed.set.covs"
+save(all.covs, file = "~/Desktop/allcovs.rdata")
+                    
+  #now for flowering time         
+    #open a species spefic treeData file from ClarkLab
+    spp.specific.annual.mean.cov.vals <- list()
+    for(j in 1:length(spp.names)){
+      
+        if(user =="chase"){
+        load(paste0('/Volumes/clark/clark.unix/makeMast/combinedSites/',spp.names[j],'.Rdata'))
+        }else{
+        load(paste0('../combinedSites/',spp.names[j],'.Rdata'))
+        }
+      
+      treeData$geeID <- paste0(treeData$plot,"_",treeData$tree)
+      treeData$IDyear <- paste0(treeData$geeID,"_",treeData$year)
+      
+      #create a vector with the geeID of 
+      f.this.spp.cov <- list()
+      for(i in 1:length(data.sets)){
+        data.iq <- as.data.frame(get(paste0(data.sets[i])))
+        #subset the rows of dataset i by all individuals of species j that are within dataset i
+        reduced.data <- subset(data.iq, data.iq[,1] %in% treeData$geeID)
+        
+        #average values from dataset i for species j's flowering season
+        treeData$f.start <- flowering$f.start[ match(treeData$species, flowering$long.code)]
+        treeData$f.end <- flowering$f.end[ match(treeData$species, flowering$long.code)]
+        f.series <- treeData[1, "f.start"] :  treeData[1, "f.end"] #flowering time
+        
+        #creating a vector of column names to pull from dataset i
+        a <- data.abbrs[i]
+        names.vec <- NULL
+        counter <- 1
+        
+        for(k in 1:length(data.years)){
+          b <- data.years[k]
+          for(m in 1:length(f.series)){
+            c <- f.series[m]
+            if (c <= 9){
+              c <- paste0("0",c)
+            } else{
+              c <- paste0(c)
+            }
+            col.tmp <- paste0(a,b,"_",c)
+            names.vec[counter] <- col.tmp
+            counter <- counter+1
+          }
+        }
+        
+        #further reducing data to columns that match this species seed set times
+        more.reduced.data <- reduced.data[,names.vec]
+        mean.reduced.data <- matrix(NA, nrow = nrow(more.reduced.data), ncol = length(data.years), dimnames = list(reduced.data$geeID, data.years))
+        cols.iq <- 1:length(f.series)
+        
+        for(n in 1:nrow(mean.reduced.data)){
+          for(g in 1:length(data.years)){
+            #if cols iq <= 1 then take the value, if >1, take mean
+            if (length(f.series) < 2){
+              mean.reduced.data[n,g] <- more.reduced.data[n,cols.iq]
+            } else{
+              mean.reduced.data[n,g] <- rowMeans(more.reduced.data[n,cols.iq])
+            }
+            cols.iq <- cols.iq + length(f.series)
+          }
+          cols.iq <- 1:length(f.series)
+        }
+        mean.reduced.data <- as.data.frame(mean.reduced.data)
+        mean.reduced.data$IDyear <- rownames(mean.reduced.data)
+        f.this.spp.cov[[i]] <- mean.reduced.data
+      }
+      names(f.this.spp.cov) <- data.sets
+      spp.specific.annual.mean.cov.vals[[j]] <- f.this.spp.cov
+      
+    }
+    
+flowering.covs <- spp.specific.annual.mean.cov.vals    
+names(flowering.covs) <- spp.names
+all.covs[[4]] <- flowering.covs
+names(all.covs)[[4]] <- "flowering.covs"
+
+save(all.covs, file = "~/Desktop/all.covs.rdata")
+    
+all.cov.names <- c("merged.covs","lag.covs","seed.set.covs","flowering.covs")
+
+#now combining covariates with all species tree data, making them ready to import into MASTIF
+library(tidyr)
+layer.names <- c("pet.data",  "pr.data",   "tmax.data", "tmin.data")
+all.treeData <- list()
+for(t in 1:length(spp.names)){
+  
+  if(user =="chase"){
+  load(paste0('/Volumes/clark/clark.unix/makeMast/combinedSites/',spp.names[t],'.Rdata'))
+  }else{
+  load(paste0('../combinedSites/',spp.names[t],'.Rdata'))
+  }
+  
+  treeData$IDyear <- paste0(treeData$plot, "_", treeData$tree, "_", treeData$year)
+  for(c in 1: length(all.cov.names)){
+    data.layer.iq <- all.covs[[c]]
+    if (c > 1){
+      if (c < 3){ #for layer 2
+        spp.iq <- data.layer.iq[[t]]
+        new <- merge(treeData,spp.iq, by="IDyear", all.x=TRUE)
+      } else{ #for problem layers 3 and 4
+        spp.iq <- data.layer.iq[[t]]
+        
+        for(gg in 1: length(spp.iq)){ #pulling out each cov layer for this spp
+          spp.cov.iq <- spp.iq[[gg]]
+          spp.cov.iq$IDyear <- factor(spp.cov.iq$IDyear)
+          spp.cov.iq.long <- gather(spp.cov.iq, year, variable, "1979":"2017", factor_key=TRUE)
+          colnames(spp.cov.iq.long)[3] <- paste0(all.cov.names[c], "_", names(spp.iq[gg]))
+          spp.cov.iq.long$IDyear <- paste0(spp.cov.iq.long$IDyear,"_",spp.cov.iq.long$year)
+          if (gg < 2){
+            spp.all.cov.holder <- NULL
+            spp.all.cov.holder <- rbind(spp.all.cov.holder,spp.cov.iq.long)
+          } else{
+            spp.all.cov.holder <- merge(spp.all.cov.holder,spp.cov.iq.long[,c(1,3)], by="IDyear", all.x=TRUE)
+          }
+        }
+        new <-  merge(treeData,spp.all.cov.holder , by="IDyear", all.x=TRUE)
+      }
+      new$year.x <- new$year.y <-  NULL
+      treeData <- new
+      #need to save new treeData in another matrix?
+    } else{
+      new <- merge(treeData, data.layer.iq, by="IDyear", all.x=TRUE)
+    treeData <- new
+    }
+    all.treeData[[t]] <- new
+  }
+} 
+names(all.treeData) <- spp.names
+
+#adding "year" back in
+for( i in 1: length(all.treeData)){
+  all.treeData[[i]]$year <- sub('.*\\_', '', all.treeData[[i]]$IDyear)
+}
+
+  if(user =="chase"){
+  save(all.treeData, file ='/Volumes/clark/clark.unix/makeMast/combinedSites/all.treeData.rdata')
+  }else{
+  save(all.treeData, file = '../combinedSites/all.treeData.rdata')
+  }
+```
 
 ```{r}
+#creating a seperate file holding all non-cov infor for each species instead of adding another list to the monstrosity above
+spp.names <- c('abies','acer','ailanthus','amelanchier','betula','carpinus',
+               'carya','celtis','cercis','chionanthus','cornus','fagus','fraxinus',
+               'ilex','juniperus','liquidambar','liriodendron','magnolia',
+               'morus','nyssa','ostrya','oxydendron','picea','pinus','prunus',
+               'quercus','robinia','sassafras','sorbus','tilia','tsuga','ulmus')
+data.names <- c("seedData", "xytrap", "xytree", "plotj", "seedNames", "specNames", "years")
+otherTreeData <- list()
+for(ss in 1:length(spp.names)){
   
- library(RANN)
+  if(user =="chase"){
+  load(paste0('/Volumes/clark/clark.unix/makeMast/combinedSites/',spp.names[ss],'.Rdata'))
+  }else{
+  load(paste0('../combinedSites/',spp.names[ss],'.Rdata'))
+  }
+ 
+  tmp.holder <- list()
+    for(qq in 1: length(data.names)){
+      tmp.holder[[qq]] <- get(paste0(data.names[qq]))
+    }
+  names(tmp.holder) <- data.names
+ otherTreeData[[ss]] <- tmp.holder
+}
+
+names(otherTreeData) <- spp.names
+
+  if(user =="chase"){
+  save(otherTreeData, file ='/Volumes/clark/clark.unix/makeMast/combinedSites/otherTreeData.rdata')
+  }else{
+  save(otherTreeData, file = '../combinedSites/otherTreeData.rdata')
+  }
+```
+
+
+```{r, echo=F}
+#ANALYSIS STARTS HERE
+rm(list=ls())
+remove.packages("mastif", "/Library/Frameworks/R.framework/Versions/3.3/Resources/library")
+install.packages("~/Documents/GitHub/mast/mastif_1.0.tar.gz", repos = NULL, type = "source")
+library("mastif")
+library("Rcpp")
+library("stringr")
+library(RANN)
 library(corrplot)
+library(stringr)
 
-AR <- F
-INIT <- T
+username <- function() 
+{ 
+readline("Please enter username:  ")
+} 
+user <- username()
+print(paste0("proceeding as ", user))
+```
 
-model <- 'I(log(diam))'
-#outFiles <- list.files(outPath)
+```{r, echo=F}
+if(user =="chase"){
+  load("/Volumes/clark/clark.unix/makeMast/combinedSites/all.treeData.rdata")
+  load("/Volumes/clark/clark.unix/makeMast/combinedSites/otherTreeData.rdata")
+  traitTable <- read.table('/Volumes/clark/clark.unix/traitTable.txt',header=T)
+  priorVals  <- read.table("/Volumes/clark/clark.unix/makeMast/dataFiles/priorParameters.txt", header = TRUE)
+  }else{
+  load('../combinedSites/all.treeData.rdata')
+  load('../combinedSites/otherTreeData.rdata')
+  traitTable <- read.table('../../../traitTable.txt',header=T)
+  priorVals  <- read.table("../dataFiles/priorParameters.txt", header = TRUE)
+  }
 
-formulaFec <- as.formula( paste('~',model) )
+genera <- c('abie','acer','aila','amel','betu','carp',
+            'cary','celt','cerc','chio','corn','fagu','frax',
+            'ilex','juni','liqu','liri','magn',
+            'moru','nyss','ostr','oxyd','pice','pinu','prun',
+            'quer','robi','sass','sorb','tili','tsug','ulmu')
 
-modelYears <- c(1991:2013)
+genFull <- c('abies','acer','ailanthus','amelanchier','betula','carpinus',
+             'carya','celtis','cercis','chionanthus','cornus','fagus','fraxinus',
+             'ilex','juniperus','liquidambar','liriodendron','magnolia',
+             'morus','nyssa','ostrya','oxydendron','picea','pinus','prunus',
+             'quercus','robinia','sassafras','sorbus','tilia','tsuga','ulmus')
 
-regions <- c('DF_','MH_','CW_','GSNP_','B_','HF_')
-names(regions)[regions %in% 'DF_'] <- 'piedmont'
-names(regions)[regions %in% c('MH_','CW_','GSNP_')] <- 'sApps'
-names(regions)[regions %in% c('HF_','B_')] <- 'NE'
+omitNames   <- c('acerIMMA','liriTuli_flower','betuUNKN_flower','caryIMMA',
+                 'cornIMMA','acerRubr_flower',' betuUNKN_flower',
+                 'nyssIMMA','oxydArbo_flower','oxydIMMA','pinuImma_fruit',
+                 'piceRubeIMMA','querIMMA','tiliAmer_flower')
 
-skip <- 'acer'
+changeNames <- rbind( cbind('ulmuUNKN','ulmuAlat'),
+                      cbind('acerUNKN','acerRubr'),
+                      cbind('acerrubr','acerRubr'))
 
+output.file.name <- "output.05.16.18"
 
-for(j in 1:length(genera)){
+if(user =="chase"){
+  dir.create(paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',output.file.name))
+  }else{
+  dir.create(paste0('../../comboAnalysis',output.file.name))
+  }
+
+#spp in loop status/errors
+
+#1 rr[1,] incorrect dimensions
+#2 OK
+#3 OK
+#4 multiple Unknowns
+#5 multiple Unknowns
+#6 OK
+#7 unknown error
+#8 plot Dims
+#9 OK
+#10 all immature
+#11 OK
+#12 OK
+#13 OK
+#14 [.data.frame`(sdata, , keepCol) : undefined columns selected
+#15 OK
+#16 OK
+#17 OK
+#18 OK
+#19 all immature
+#20 OK
+#21 OK
+#22 OK
+#23 rr[1,] incorrect dimensions
+#24 multiple Unknowns
+#25 OK*
+#26 OK*
+#27 OK
+#28 not enough seeds
+#29 rr[1,] incorrect dimensions
+#30 OK
+#31 OK
+#32 OK
+
+for(t in 2:length(genFull)){
+  covTreeData <- all.treeData[[t]]
+  covTreeData$province <- sub('\\_.*', '', covTreeData$plot)
+  covTreeData$province <- str_replace(covTreeData$province, "DF", "piedmont")
+  covTreeData$province <- str_replace(covTreeData$province, "MH", "sApps")
+  covTreeData$province <- str_replace(covTreeData$province, "CW", "sApps")
+  covTreeData$province <- str_replace(covTreeData$province,"GSNP", "sApps")
+  covTreeData$province <- str_replace(covTreeData$province, 'HF', 'NE')
+  covTreeData$province <- str_replace(covTreeData$province, 'B', 'NE')
   
-  if(genera[j] %in% skip)next
+  names(covTreeData) <- gsub("_", ".", names(covTreeData))
+
+  covTreeData$f.PETO <- (covTreeData$flowering.covs.pr.data - covTreeData$flowering.covs.pet.data)
+  covTreeData$s.PETO <- (covTreeData$seed.set.covs.pr.data - covTreeData$seed.set.covs.pet.data)
+  otherTreeData.now <- otherTreeData[[t]]
   
- # INIT <- T
-  
-#  wi <- grep(genera[j],outFiles)
-#  if(length(wi) > 0)INIT <- F
-  
-  genus <- genera[j]
-  
-  print(genus)
-  
-  file <- paste('../combinedSites/',genus,'.Rdata',sep='')
-  
- # file <- paste('../compressedFiles/clarkLab/',genus,'.Rdata',sep='')
-  
-  load(file)
-  
-  wf <- grep('UNKN_fruit',seedNames)
+#dealing with UNKN fruits
+  wf <- grep('UNKN_fruit',otherTreeData.now$seedNames)
   if(length(wf) > 0){
     seedNames[wf] <- 'unknfruit'
-    wf <- grep('UNKN_fruit',colnames(seedData))
+    wf <- grep('UNKN_fruit',colnames(otherTreeData.now$seedData))
     colnames(seedData)[wf] <- 'unknfruit'
   }
   
-  wf <- grep('UNKN',seedNames)
+  wf <- grep('UNKN',otherTreeData.now$seedNames)
   if(length(wf) > 1)stop('multiple unknowns')
+
+#fixing col names to be compatible with MASTIF
+  names(covTreeData) <- str_replace_all(names(covTreeData), "[[.]]", "")
   
-  wspec <- match(specNames,traitTable$code4)
-  seedMass <- as.matrix( traitTable[wspec,'gmPerSeed',drop=F] )*1000
-  rownames(seedMass) <- specNames
-  
-  wna <- which(is.na(seedMass))
-  if(length(wna) > 0){
-    seedMass[wna] <- mean(seedMass,na.rm=T)
+  if(user =="chase"){
+  dir.create(paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',output.file.name))
+  setwd(paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',output.file.name))
+  }else{
+  dir.create(paste0('../comboAnalysis',output.file.name))
+  setwd(paste0('../comboAnalysis',output.file.name))
   }
+
+  formulaFec <- as.formula( ~ I(log(diam)) + yearlyPETOtmin1 + yearlyPETOtmin2 + floweringcovsprdata + floweringcovstmindata + sPETO)
+
+  formulaRep <- as.formula( ~ I(log(diam)) )
   
-  print(seedMass)
+  randomEffect <- list(randGroups = 'treeID',formulaRan = as.formula( ~ I(log(diam)) ) )
+  yearEffect <- list(specGroups = 'species', plotGroups = 'province')
   
-  tplot <- columnSplit(as.character(treeData$plot),'_')[,1]
-  tplot <- paste(tplot,'_',sep='')
+  priors <- priorVals[priorVals$genus == genFull[t],]
+  plots <- sort(unique(as.character(otherTreeData.now$plot)))
+  years <- sort(unique(c(otherTreeData.now$year,otherTreeData.now$seedData$year)))
+  covTreeData$province <- as.factor(covTreeData$province)
   
-  reg <- columnSplit(regions[match(tplot,regions)],'_')
-  
-  treeData$region <- as.factor(reg)
-  treeData$province <- as.factor(names(regions)[match(tplot,regions)])
-  
-  formulaRep <- as.formula( ~ I(log(diam)) )            # maturation model
-  
-  priors <- priorVals[as.character(priorVals$genus) == genus,]
-  
-  plots <- sort(unique(as.character(treeData$plot)))
-  years <- sort(unique(c(treeData$year,seedData$year)))
-  
-  inputs   <- list( specNames = specNames, seedNames = seedNames, 
-                    treeData = treeData, seedData = seedData, 
-                    xytree = xytree, xytrap = xytrap, priorDist = 20, 
+  inputs   <- list( specNames = otherTreeData.now$specNames, seedNames = otherTreeData.now$seedNames, 
+                    treeData = covTreeData, seedData = otherTreeData.now$seedData,
+                    xytree = otherTreeData.now$xytree, xytrap = otherTreeData.now$xytrap, priorDist = priors$priorDist, 
                     priorVDist = priors$priorVDist, minDist = priors$minDist, 
                     maxDist = priors$maxDist, minDiam = priors$minDiam, 
-                    maxDiam = priors$maxDiam, 
-                    maxF = priors$maxF, plotDims = plotDims, plotArea = plotArea,
-                    seedMass = seedMass)
-  
+                    maxDiam = priors$maxDiam, maxF = priors$maxF)
   predPlots <- plots
-  predList <- list( mapMeters = 10, plots = predPlots, years = years )
-  randomEffect <- list(randGroups = 'treeID', formulaRan = as.formula( ~ I(log(diam)) ) )
+  predList <- list(mapMeters = 10, plots = predPlots, years = years )
   
-  yearEffect   <- list(specGroups = 'species', plotGroups = 'province')
+  output <- mastif(formulaFec, formulaRep,  inputs = inputs, ng =200, burnin = 20, yearEffect = yearEffect,randomEffect = randomEffect,predList = predList)
   
-  outPath <- '../../mastOutput/YR/'
-  ar <- character(0)
-  
-  if(AR){
-    yearEffect$p <- 4
-    ar <- paste('ar',yearEffect$p,sep='')
-    outPath <- '../../mastOutput/ar4/'
+    if(user =="chase"){
+  save(output, file = paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',output.file.name, "/", genFull[t],"output.rdata"))
+  }else{
+   save(output, file = paste0('../comboAnalysis',output.file.name,"/",genFull[t],"output.rdata"))
   }
-  outFile <- paste(outPath, genus,'_', model, ar,'.rdata',sep='')
-  
-  if(INIT){
-    tmp <- try(
-      output <- mastif(formulaFec, formulaRep,  inputs = inputs, ng = 500, burnin = 200, 
-                       yearEffect = yearEffect, randomEffect = randomEffect)
-    )
-    if( inherits(tmp,'try-error') ){
-      print('error in:')
-      print(files[j])
-      next
-    }
-    
-    save(output = output, file=outFile)
-  }
-  # plotPars <- list(SPACETIME=T, SAVEPLOTS=F)
-  # mastPlot(output, plotPars )
-  # mastMap(output, mapPlot='DFBW', mapYears=c(2013, 2014), trapScale=.2, PREDICT=T,LEGEND=T,SCALEBAR=T, plotScale=2.2)
-  # mastMap(output, mapPlot='DFHW', mapYears=c(2014), MAPTRAPS=F, PREDICT=T,LEGEND=T,SCALEBAR=T, plotScale=2.2)
-  
-  output <- mastif(inputs = output, ng = 500, burnin = 300, 
-                   yearEffect = yearEffect, predList = predList,
-                   randomEffect = randomEffect)
-  
-  outFolder <- paste(outPath,genus,'Plots',sep='')
-  
-  plotPars <- list(SPACETIME=T, SAVEPLOTS=T, MAPS=F, outFolder=outFolder)
-  mastPlot(output, plotPars )
-  
-  # write output
-  
-  save(output = output, file=outFile)
-#  files[j] <- outFile
 }
 ```
-
-
-```{r}
-
-# latex tables
-xx <- summary(output)$data
-print( xtable::xtable( xx, caption='Data summary', digits=0 ) )
-
-xx <- summary(output)
-tnames <- names(xx)
-for(k in 1:length(tnames)){
-  xk <- xx[tnames[k]][[1]]
-  if(tnames[k] %in% c('fit', 'words'))next
-  print('')
-  print(tnames[k])
-  print( xtable::xtable( xk, caption=tnames[k] ) )
-}
-
-
-summaryAR4 <- summary(output)
-
-plotPars <- list(SAVEPLOTS = T, SPACETIME=T)
-mastPlot(output, plotPars)
-
-meanVarianceScore(output, ctree=2, cspace=10, cyr = 5,
-                              LAGMAT=F, Q = c(.5, .025, .975), nsim = 1)
-
-library(corrplot)
-tvar <- cov2cor( output$prediction$entropyEst$TvarEst[[2]] )
-ord  <- order(colnames(tvar))
-tvar <- tvar[ord,ord]
-
-corrplot(tvar, method='color', type='lower', diag=F)
-
-#space
-
-t13 <- grep('2013',rownames(tvar))
-corrplot(tvar[t13,t13], method='color', type='lower', diag=F)
-
-#time
-t1 <- grep('204-',rownames(tvar))
-corrplot(tvar[t1,t1], method='color', type='lower', diag=F)
-
-
-```
-
-1. does it predict in-sample?
-
-a. from the posterior?
-
-b. from the estimated fecundity?
-
-2. 
-
-
-```{r }
-load("../../mastOutput/ar5/fagu_canopy+I(log(diam))AR.rdata")
-plotPars = list(SAVEPLOTS=T, MAPS=F)
-mastPlot(output, plotPars=plotPars)
-
-```
-
-
-
-
-
-```{r rcons}
-
-traitTable <- read.table('traitTable.txt',header=T)
-
-TvarEst  <- output$prediction$TvarEst
-TvarPred <- output$prediction$TvarPred
-
-tindex <- columnSplit(rownames(TvarEst), '-')
-treeID <- columnPaste(tindex[,1],tindex[,2], '-')
-spec   <- treeData$species[match(treeID,treeData$treeID)]
-seedMass <- traitTable[match(spec,traitTable$code4),'gmPerSeed']
-
-smat <- diag(length(seedMass))
-diag(smat) <- seedMass
-
-TvarEst <- smat%*%TvarEst%*%smat
-
-
-
-
-  plot <- 'CW_318'
-  
-  rCons <- rMu[,1:2]
-  rCons <- sweep(rCons,1,rowSums(rCons),'/')
-  
-  tmp <- getCvol(output, plot, rCons, npoints=3, nrep = 10)
-```
-
-```{r}
-rCons <- rMu[,1:2]
-
-rCons[,1] <- .9
-rCons[,2] <- .1
-#rCons[2,1] <- .1  
-rCons[4,1] <- .1
-rCons[4,2] <- .1
-
-rCons <- rCons[,1]
-
-tmp <- getCvol(output, plot='DF_HW', rCons, npoints = 5, nyears = 5, 
-                    sampleYears = 2003:2015, nrep = 50)
-rCons
-tmp$entropy
-C <- tmp$C
-index <- tmp$index
-
-library(corrplot)
-
-#C[upper.tri(C)] <- NA
-
-C <- Tvar
-ccor <- cov2cor(C)
-
-
-
-
-
-col1 <- colorRampPalette(c("white", "yellow", "red"))
-
-tindex <- columnSplit(rownames(Tvar),'-', ASNUMERIC=T)
-colnames(tindex) <- c('tree','year')
-
-nrows <- 70
-
-cm <- ccor[1:nrows,1:nrows]
-diag(cm) <- min(cm)
-clim <- range(cm[lower.tri(cm)])
-clim[1] <- clim[1] - .0001
-clim[2] <- clim[2] + .0001
-
-corrplot(cm, method='square',  cl.lim = clim, is.cor=F, col = col1(10),
-         cl.length=11,
-         diag = F, type = 'lower', addgrid.col=NA, tl.pos = 'n')
-wt <- which( diff(tindex[,'tree']) != 0 )
-wt <- wt[wt <= nrows] + .5
-#abline(v=wt + .5, lty=2, col='grey')
-
-segments(wt,wt*0,wt,rev(wt),lty=2,col='grey', lwd=3)
-segments(wt*0,nrows-wt,wt,nrows-wt,lty=2,col='grey', lwd=3)
-
-
-             
-             
-
-
-
-```
-
-#combine Quercus/Carya
-
-
-```{r fit}
-
-j <- 26 #quercus
-
-genus <- genera[j]
-load(files[j])
-priors <- priorVals[priorVals$genus == genus,]
-
-inputs   <- list( specNames = specNames, seedNames = seedNames, 
-                  treeData = treeData, seedData = seedData,
-                  xytree = xytree, xytrap = xytrap, priorDist = priors$priorDist, 
-                  priorVDist = priors$priorVDist, minDist = priors$minDist, 
-                  maxDist = priors$maxDist, minDiam = priors$minDiam, 
-                  maxDiam = priors$maxDiam, maxF = priors$maxF)
-
-j <- 7 # carya
-
-genus <- genera[j]
-load(files[j])
-priors <- priorVals[priorVals$genus == genus,]
-
-
-newlist <- list( specNames = specNames, seedNames = seedNames, 
-                  treeData = treeData, seedData = seedData,
-                  xytree = xytree, xytrap = xytrap, priorDist = priors$priorDist, 
-                  priorVDist = priors$priorVDist, minDist = priors$minDist, 
-                  maxDist = priors$maxDist, minDiam = priors$minDiam, 
-                  maxDiam = priors$maxDiam, maxF = priors$maxF)
-
-regions <- c("CW", "MH","GSNP")
-
-inputs <- combineMastData(inputs, regions=regions)
-inputs <- combineMastData(inputs,newlist=newlist,regions=regions)
-
-priorR <- mastRmatrix(inputs$specNames, inputs$seedNames, unknown = 'UNKN', unFraction = .8)
-priorR['caryUNKN','caryCord'] <- .02
-priorR['querUNKN','querFalc'] <- .02
-
-
-rc <- grep('cary',rownames(priorR))
-rq <- grep('quer',rownames(priorR))
-cc <- grep('cary',colnames(priorR))
-cq <- grep('quer',colnames(priorR))
-
-priorR[rc,cq] <- 0
-priorR[rq,cc] <- 0
-inputs$priorR <- sweep(priorR,1,rowSums(priorR),'/')
-
-
-#province <- as.character(treeData$region)
-#province[province %in% c('CW','MH','GSNP')] <- 'SAPP'
-#treeData$province <- as.factor(province)
-
-formulaFec <- as.formula( ~ growth + canopy + I(log(diam)) )   # fecundity model
-formulaRep <- as.formula( ~ I(log(diam)) )            # maturation model
-
-
-predPlots <- plots[ 1:min(c(nplot,2)) ]
-predList <- list( mapMeters = 10, plots = predPlots, years = years )
-yearEffect   <- list(specGroups = 'species', plotGroups = 'region', p = 4)
-randomEffect <- list(randGroups = 'treeID', formulaRan = as.formula( ~ I(log(diam)) ) )
-output <- mast(formulaFec, formulaRep,  inputs = inputs, ng = 200, burnin = 50, 
-               yearEffect = yearEffect, predList = predList,
-               randomEffect = randomEffect, plotDims = plotDims)
-mastPlot(output)
-  
-```
-
-
-```{r, echo=F, eval=F}
-
-#temporary ailanthus
-# set i = 3 and read in data
-
-load('../compressedFiles/aila.Rdata')
-plots <- 'DF_BW'
-ylim <- c(0,50)
-yl <- c(0,.06)
-file <- 'AlianthusBA.pdf'
-years <- c(1999:2016)
-
-load('../compressedFiles/tsug.Rdata')
-plots <- c("CW_LG", "CW_UG")
-ylim <- c(0,300)
-yl <- c(0,2)
-file <- 'tsugaBA.pdf'
-years <- c(1999:2016)
-
-load('../compressedFiles/corn.Rdata')
-plots <- c("CW_218","DF_HW", "DF_BW", "DF_EW")
-plots <- 'CW_218'
-ylim <- c(0,30)
-yl <- c(0,1)
-file <- 'cornBA.pdf'
-years <- c(1991:2016)
-
-
-pdf( file=file, width=6, height=4 )
-
-cols <- c('darkgreen','brown','darkblue', 'black')
-
-ff       <- paste(path,'treePlotDataDuke.txt',sep='')
-traparea <- read.table(ff, header=T)[,1:2]
-
-ff       <- paste(path,'treePlotAreaDuke.txt',sep='')
-plotarea <- read.table(ff, header=T)
-pyr      <- as.numeric( matrix( unlist(strsplit(colnames(plotarea)[-1],'X')),
-                        ncol=2,byrow=T)[,2] )
-
-ba <- pi*(treeData$diam/2)^2
-
-aa <- max( traparea[traparea[,'plot'] %in% plots,'seedArea'] )
-maxSeed <- max(as.vector(seedData[seedData$plot %in%   plots,seedNames])/aa,na.rm=T)
-
-par(bty='n', mar=c(4,4,1,4))
-
-plot(NULL,xlim=range(years),ylim=c(0,1.5*sqrt(maxSeed)), xlab='Year', 
-     ylab='Seeds per m2', yaxt='n')
-
-tt   <- sqrtSeq(1.2*sqrt(maxSeed))
-at   <- tt$at
-labs <- tt$labs
-axis(2, at = at, labels = labs)
-
-for(j in 1:length(plots)){
-  
-  ws <- which(seedData$plot == plots[j])
-  aa <- traparea[traparea[,'plot'] == plots[j],'seedArea']
-  smat <- as.matrix(seedData[ws,seedNames])/aa
-  svec <- sqrt(as.vector(smat))
-  yy   <- seedData$year[ws]
-  yy   <- rep(yy, length(seedNames))
-  points(jitter(yy),jitter(svec), 
-         pch=16, col=.getColor(cols[j], .6), 
-         cex= .2 + 2*(svec/sqrt(maxSeed))^.3)
-}
-
-par(new = T)
-plot(NULL, pch=16, xlim=c(1998,2017),ylim=yl, 
-     axes=F, xlab='', ylab='')
-  
-  for(j in 1:length(plots)){
-  
-    wt <- which(treeData$plot == plots[j])
-    
-    pa <- as.numeric(plotarea[plotarea[,'plot'] == plots[j],-1])
-    
-    aa <- pa[ match(treeData$year[wt],pyr) ]
-    btj <- ba[wt]/aa/10000
-    
-    bt <- tapply(btj,treeData$year[wt],sum)
-    yt <- as.numeric(names(bt))
-    
-    lines(yt,bt,col=cols[j], lwd=2)
-  }
-axis(side = 4)
-mtext(side = 4, line = 3, 'Basal area (m^2/ha)')
-legend("topright", plots, text.col=cols, bty='n')
-dev.off()
-
-
-
-formulaFec <- formulaRep <- as.formula( ~ I(log(diam)) )   # fecundity model
-
-inputs   <- list(specNames = specNames, seedNames = seedNames, 
-                 treeData = treeData, seedData = seedData, xytree = xytree, 
-                 xytrap = xytrap, priorDist = 15, priorVDist = 5, minDist = 8,
-                 maxDist = 30, sigmaMu = 1, minDiam = 5, maxDiam = 60)
-output <- mastif( formulaFec, formulaRep, inputs = inputs,  ng = 1500, 
-                  burnin = 500 )
-predList <- list( mapMeters = 10, plots ='DF_BW', years = 1999:2015 )
-output <- mastif( inputs = output, ng = 2500, burnin = 500, 
-                  predList = predList )
-
-# map plots
-mapList <- list( treeData = treeData, seedData = seedData, 
-                 specNames = specNames, seedNames = seedNames, 
-                 xytree = xytree, xytrap = xytrap)
-
-for(j in 1999:2015){
-  file <- paste('mapAlianthus_',j,'.pdf',sep='')
-  pdf( file=file, width=4, height=5 )
-  seedMax <- 10
-  mastMap(mapList = output, mapPlot = 'DF_BW', PREDICT=T, MAPTRAPS=F,
-          mapYears = j,  scaleTree = 1, scaleTrap = .5, seedMax = seedMax,
-          LEGEND=F, SCALEBAR=F, scaleValue=50, COLORSCALE = F, 
-          scalePlot = 5)
-  dev.off()
-}
-
-# hemlock decline
-
-  
-
-```
-
-
-
