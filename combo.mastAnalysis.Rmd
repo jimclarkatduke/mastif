@@ -10,7 +10,7 @@ output:
 
 
 ```{r, echo=F}
-#this is a test
+#SKIP TO LINE 992 TO READ IN COMPLETED DATA FILES AND RUN MASTIF
 
 username <- function() 
 { 
