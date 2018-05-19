@@ -972,7 +972,7 @@ names(otherTreeData) <- spp.names
 #ANALYSIS STARTS HERE
 rm(list=ls())
 remove.packages("mastif", "/Library/Frameworks/R.framework/Versions/3.3/Resources/library")
-install.packages("~/Documents/GitHub/mast/mastif_1.0.tar.gz", repos = NULL, type = "source")
+install.packages("~/Documents/GitHub/mast/mastif_1.0.tar.gz", repos = NULL, type = "source") #upload the most recent package from gitHub
 library("mastif")
 library("Rcpp")
 library("stringr")
