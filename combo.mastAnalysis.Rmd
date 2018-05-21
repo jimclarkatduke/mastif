@@ -973,9 +973,8 @@ names(otherTreeData) <- spp.names
 rm(list=ls())
 remove.packages("mastif", "/Library/Frameworks/R.framework/Versions/3.3/Resources/library")
 install.packages("~/Documents/GitHub/mast/mastif_1.0.tar.gz", repos = NULL, type = "source") #upload the most recent package from gitHub
-library("mastif")
-library("Rcpp")
-library("stringr")
+library(mastif)
+library(Rcpp)
 library(RANN)
 library(corrplot)
 library(stringr)
@@ -1038,7 +1037,7 @@ if(user =="chase"){
 #4 multiple Unknowns
 #5 multiple Unknowns
 #6 OK
-#7 unknown error
+#7 OK
 #8 plot Dims
 #9 OK
 #10 all immature
