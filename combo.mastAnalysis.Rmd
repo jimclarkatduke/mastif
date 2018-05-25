@@ -1030,6 +1030,7 @@ if(user =="chase"){
   }
 
 #spp in loop status/errors
+#need to re-run with new MASTIF package
 
 #1 rr[1,] incorrect dimensions
 #2 OK
