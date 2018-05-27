@@ -1,0 +1,7 @@
+mastMap                 Map dispersal data with predictions for mastif
+                        model
+mastPlot                Plot mast model
+mastRmatrix             Template for species to seedtype matrix
+mastSim                 Data simulation for mast model
+mastif                  Gibbs sampler for mast data
+mastif-package          Mast Inference and Forecasting

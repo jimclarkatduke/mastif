@@ -1,0 +1,7 @@
+#!/bin/bash
+#SBATCH --mem=25G
+#SBATCH --mail-user=cln12@duke.edu
+#SBATCH --output=mastif.out
+
+export PATH=/opt/apps/rhel7/R-3.3.2/bin:$PATH
+R CMD BATCH -"c($t)" CLUSTER.MASTIF.R CLUSTER.MASTIF$t.Rout
