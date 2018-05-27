@@ -1021,7 +1021,7 @@ changeNames <- rbind( cbind('ulmuUNKN','ulmuAlat'),
                       cbind('acerUNKN','acerRubr'),
                       cbind('acerrubr','acerRubr'))
 
-output.file.name <- "output.05.16.18"
+output.file.name <- "output.05.26.18"
 
 if(user =="chase"){
   dir.create(paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',output.file.name))
@@ -1065,7 +1065,7 @@ if(user =="chase"){
 #31 OK
 #32 OK
 
-for(t in 2:length(genFull)){
+for(t in 1:length(genFull)){
   covTreeData <- all.treeData[[t]]
   covTreeData$province <- sub('\\_.*', '', covTreeData$plot)
   covTreeData$province <- str_replace(covTreeData$province, "DF", "piedmont")
