@@ -993,12 +993,16 @@ if(user =="chase"){
   load("/Volumes/clark/clark.unix/makeMast/combinedSites/otherTreeData.rdata")
   traitTable <- read.table('/Volumes/clark/clark.unix/traitTable.txt',header=T)
   priorVals  <- read.table("/Volumes/clark/clark.unix/makeMast/dataFiles/priorParameters.txt", header = TRUE)
-  }else{
-  load('../combinedSites/all.treeData.rdata')
-  load('../combinedSites/otherTreeData.rdata')
-  traitTable <- read.table('../../../traitTable.txt',header=T)
-  priorVals  <- read.table("../dataFiles/priorParameters.txt", header = TRUE)
-  }
+}else{
+  # jim's laptop
+  cpath <- "/Volumes/research/clark/clark.unix/makeMast/"
+  load( paste(cpath,'combinedSites/all.treeData.rdata',sep='') )
+  load( paste(cpath,'combinedSites/otherTreeData.rdata',sep=''))
+  traitTable <- read.table( paste(cpath,'vignettes/traitTable.txt',sep=''),
+                            header=T)
+  priorVals  <- read.table(paste(cpath,'dataFiles/priorParameters.txt',sep=''),
+                           header = TRUE)
+}
 
 genera <- c('abie','acer','aila','amel','betu','carp',
             'cary','celt','cerc','chio','corn','fagu','frax',
@@ -1021,12 +1025,13 @@ changeNames <- rbind( cbind('ulmuUNKN','ulmuAlat'),
                       cbind('acerUNKN','acerRubr'),
                       cbind('acerrubr','acerRubr'))
 
-output.file.name <- "output.05.26.18"
+output.folder.name <- "output.05.26.18/"
+setwd("/Volumes/research/clark/clark.unix/makeMast/vignettes")
 
 if(user =="chase"){
-  dir.create(paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',output.file.name))
+  dir.create(paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',output.folder.name))
   }else{
-  dir.create(paste0('../../comboAnalysis',output.file.name))
+  dir.create(paste0('../comboAnalysis/',output.folder.name))
   }
 
 #spp in loop status/errors
@@ -1065,6 +1070,8 @@ if(user =="chase"){
 #31 OK
 #32 OK
 
+require(stringr)
+
 for(t in 1:length(genFull)){
   covTreeData <- all.treeData[[t]]
   covTreeData$province <- sub('\\_.*', '', covTreeData$plot)
@@ -1081,33 +1088,50 @@ for(t in 1:length(genFull)){
   covTreeData$s.PETO <- (covTreeData$seed.set.covs.pr.data - covTreeData$seed.set.covs.pet.data)
   otherTreeData.now <- otherTreeData[[t]]
   
+#  seedNames <- otherTreeData.now$seedNames
+#  seedData  <- otherTreeData.now$seedData
+  
 #dealing with UNKN fruits
   wf <- grep('UNKN_fruit',otherTreeData.now$seedNames)
   if(length(wf) > 0){
-    seedNames[wf] <- 'unknfruit'
+    otherTreeData.now$seedNames[wf] <- 'unknfruit'
     wf <- grep('UNKN_fruit',colnames(otherTreeData.now$seedData))
-    colnames(seedData)[wf] <- 'unknfruit'
+    colnames(otherTreeData.now$seedData)[wf] <- 'unknfruit'
   }
   
-  wf <- grep('UNKN',otherTreeData.now$seedNames)
+  wf <- grep('UNKN', otherTreeData.now$seedNames)
   if(length(wf) > 1)stop('multiple unknowns')
+  
+  wspec <- match(otherTreeData.now$specNames,traitTable$code4)
+  seedMass <- as.matrix( traitTable[wspec,'gmPerSeed',drop=F] )*1000
+  rownames(seedMass) <- specNames
+  
+  wna <- which(is.na(seedMass))
+  if(length(wna) > 0){
+    seedMass[wna] <- mean(seedMass,na.rm=T)
+  }
+  
+  print(seedMass)
 
 #fixing col names to be compatible with MASTIF
-  names(covTreeData) <- str_replace_all(names(covTreeData), "[[.]]", "")
+ # names(covTreeData) <- str_replace_all(names(covTreeData), "[[.]]", "")
   
   if(user =="chase"){
-  dir.create(paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',output.file.name))
-  setwd(paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',output.file.name))
+    dir.create(paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',
+                      output.file.name))
+    setwd(paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',
+                 output.file.name))
   }else{
-  dir.create(paste0('../comboAnalysis',output.file.name))
-  setwd(paste0('../comboAnalysis',output.file.name))
+    dir.create(paste0('../comboAnalysis',output.file.name))
+    setwd(paste0('../comboAnalysis',output.file.name))
   }
-
-  formulaFec <- as.formula( ~ I(log(diam)) + yearlyPETOtmin1 + yearlyPETOtmin2 + floweringcovsprdata + floweringcovstmindata + sPETO)
+  
+  formulaFec <- as.formula( ~ I(log(diam)) + yearlyPETO.tmin1 + yearlyPETO.tmin2 + flowering.covs.pr.data + flowering.covs.tmin.data + s.PETO)
 
   formulaRep <- as.formula( ~ I(log(diam)) )
   
-  randomEffect <- list(randGroups = 'treeID',formulaRan = as.formula( ~ I(log(diam)) ) )
+  randomEffect <- list(randGroups = 'treeID',
+                       formulaRan = as.formula( ~ I(log(diam)) ) )
   yearEffect <- list(specGroups = 'species', plotGroups = 'province')
   
   priors <- priorVals[priorVals$genus == genFull[t],]
@@ -1115,7 +1139,8 @@ for(t in 1:length(genFull)){
   years <- sort(unique(c(otherTreeData.now$year,otherTreeData.now$seedData$year)))
   covTreeData$province <- as.factor(covTreeData$province)
   
-  inputs   <- list( specNames = otherTreeData.now$specNames, seedNames = otherTreeData.now$seedNames, 
+  inputs   <- list( specNames = otherTreeData.now$specNames, 
+                    seedNames = otherTreeData.now$seedNames, 
                     treeData = covTreeData, seedData = otherTreeData.now$seedData,
                     xytree = otherTreeData.now$xytree, xytrap = otherTreeData.now$xytrap, priorDist = priors$priorDist, 
                     priorVDist = priors$priorVDist, minDist = priors$minDist, 
@@ -1124,12 +1149,16 @@ for(t in 1:length(genFull)){
   predPlots <- plots
   predList <- list(mapMeters = 10, plots = predPlots, years = years )
   
-  output <- mastif(formulaFec, formulaRep,  inputs = inputs, ng =200, burnin = 20, yearEffect = yearEffect,randomEffect = randomEffect,predList = predList)
+  output <- mastif(formulaFec, formulaRep,  inputs = inputs, ng =200, 
+                   burnin = 20, yearEffect = yearEffect,
+                   randomEffect = randomEffect,predList = predList)
   
-    if(user =="chase"){
-  save(output, file = paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',output.file.name, "/", genFull[t],"output.rdata"))
+  if(user =="chase"){
+    save(output, file = paste0('/Volumes/clark/clark.unix/makeMast/comboAnalysis/',
+                               output.file.name, "/", genFull[t],"output.rdata"))
   }else{
-   save(output, file = paste0('../comboAnalysis',output.file.name,"/",genFull[t],"output.rdata"))
+    save(output, file = paste0('../comboAnalysis/',output.folder.name,
+                               genFull[t],"output.rdata"))
   }
 }
 ```
