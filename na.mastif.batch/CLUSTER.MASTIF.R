@@ -41,42 +41,57 @@ covTreeData$s.PETO <- (covTreeData$seed.set.covs.pr.data - covTreeData$seed.set.
 otherTreeData.now <- otherTreeData[[t]]
 
 #dealing with UNKN fruits
-wf <- grep('UNKN_fruit',otherTreeData.now$seedNames)
-if(length(wf) > 0){
-  seedNames[wf] <- 'unknfruit'
-  wf <- grep('UNKN_fruit',colnames(otherTreeData.now$seedData))
-  colnames(seedData)[wf] <- 'unknfruit'
-}
-
-wf <- grep('UNKN',otherTreeData.now$seedNames)
-if(length(wf) > 1)stop('multiple unknowns')
+  wf <- grep('UNKN_fruit',otherTreeData.now$seedNames)
+  if(length(wf) > 0){
+    otherTreeData.now$seedNames[wf] <- 'unknfruit'
+    wf <- grep('UNKN_fruit',colnames(otherTreeData.now$seedData))
+    colnames(otherTreeData.now$seedData)[wf] <- 'unknfruit'
+  }
+  
+  wf <- grep('UNKN', otherTreeData.now$seedNames)
+  if(length(wf) > 1)stop('multiple unknowns')
+  
+  wspec <- match(otherTreeData.now$specNames,traitTable$code4)
+  seedMass <- as.matrix( traitTable[wspec,'gmPerSeed',drop=F] )*1000
+  rownames(seedMass) <- specNames
+  
+  wna <- which(is.na(seedMass))
+  if(length(wna) > 0){
+    seedMass[wna] <- mean(seedMass,na.rm=T)
+  }
+  
+  print(seedMass)
 
 #fixing col names to be compatible with MASTIF
-names(covTreeData) <- str_replace_all(names(covTreeData), "[[.]]", "")
+ # names(covTreeData) <- str_replace_all(names(covTreeData), "[[.]]", "")
+  
+setwd('output')
+  
+  formulaFec <- as.formula( ~ I(log(diam)) + yearlyPETO.tmin1 + yearlyPETO.tmin2 + flowering.covs.pr.data + flowering.covs.tmin.data + s.PETO)
 
-formulaFec <- as.formula( ~ I(log(diam)) + yearlyPETOtmin1 + yearlyPETOtmin2 + floweringcovsprdata + floweringcovstmindata + sPETO)
-
-formulaRep <- as.formula( ~ I(log(diam)) )
-
-randomEffect <- list(randGroups = 'treeID',formulaRan = as.formula( ~ I(log(diam)) ) )
-yearEffect <- list(specGroups = 'species', plotGroups = 'province')
-
-priors <- priorVals[priorVals$genus == genFull[t],]
-plots <- sort(unique(as.character(otherTreeData.now$plot)))
-years <- sort(unique(c(otherTreeData.now$year,otherTreeData.now$seedData$year)))
-covTreeData$province <- as.factor(covTreeData$province)
-
-inputs   <- list( specNames = otherTreeData.now$specNames, seedNames = otherTreeData.now$seedNames, 
-                  treeData = covTreeData, seedData = otherTreeData.now$seedData,
-                  xytree = otherTreeData.now$xytree, xytrap = otherTreeData.now$xytrap, priorDist = priors$priorDist, 
-                  priorVDist = priors$priorVDist, minDist = priors$minDist, 
-                  maxDist = priors$maxDist, minDiam = priors$minDiam, 
-                  maxDiam = priors$maxDiam, maxF = priors$maxF)
+  formulaRep <- as.formula( ~ I(log(diam)) )
+  
+  randomEffect <- list(randGroups = 'treeID',
+                       formulaRan = as.formula( ~ I(log(diam)) ) )
+  yearEffect <- list(specGroups = 'species', plotGroups = 'province')
+  
+  priors <- priorVals[priorVals$genus == genFull[t],]
+  plots <- sort(unique(as.character(otherTreeData.now$plot)))
+  years <- sort(unique(c(otherTreeData.now$year,otherTreeData.now$seedData$year)))
+  covTreeData$province <- as.factor(covTreeData$province)
+  
+  inputs   <- list( specNames = otherTreeData.now$specNames, 
+                    seedNames = otherTreeData.now$seedNames, 
+                    treeData = covTreeData, seedData = otherTreeData.now$seedData,
+                    xytree = otherTreeData.now$xytree, xytrap = otherTreeData.now$xytrap, priorDist = priors$priorDist, 
+                    priorVDist = priors$priorVDist, minDist = priors$minDist, 
+                    maxDist = priors$maxDist, minDiam = priors$minDiam, 
+                    maxDiam = priors$maxDiam, maxF = priors$maxF)
 predPlots <- plots
 predList <- list(mapMeters = 10, plots = predPlots, years = years )
 
 output <- mastif(formulaFec, formulaRep,  inputs = inputs, ng =20000, burnin = 1000, yearEffect = yearEffect,randomEffect = randomEffect,predList = predList)
-setwd("output")
+
 
 save(output, file = paste0(spp.names[t],"output.rdata"))
             
