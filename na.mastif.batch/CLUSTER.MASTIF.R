@@ -1,6 +1,7 @@
 # NASA MASTIF
 #Cluster code
 
+library(stringr)
 library(mastif, lib.loc ="r_libs/")
 args   <- commandArgs(trailingOnly = FALSE)
 myargs <- args[length(args)]
