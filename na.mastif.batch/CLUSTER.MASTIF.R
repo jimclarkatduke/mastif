@@ -15,6 +15,7 @@ load("all.treeData.rdata")
 load("otherTreeData.rdata")
 
 priorVals  <- read.table('priorParameters.txt',header=T)
+traitTable <- read.table('traitTable.txt', header=T)
 
 #run and save all species output
 
