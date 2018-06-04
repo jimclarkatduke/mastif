@@ -1037,16 +1037,16 @@ if(user =="chase"){
 #spp in loop status/errors
 #need to re-run with new MASTIF package
 
-#1 rr[1,] incorrect dimensions
+#1 OK
 #2 OK
 #3 OK
-#4 multiple Unknowns
-#5 multiple Unknowns
+#4 OK
+#5 OK
 #6 OK
 #7 OK
-#8 plot Dims
+#8 Error in plotDims[, "area"] : incorrect number of dimensions
 #9 OK
-#10 all immature
+#10 all immature, not enough seeds
 #11 OK
 #12 OK
 #13 OK
@@ -1055,17 +1055,17 @@ if(user =="chase"){
 #16 OK
 #17 OK
 #18 OK
-#19 all immature
+#19 OK
 #20 OK
 #21 OK
 #22 OK
-#23 rr[1,] incorrect dimensions
-#24 multiple Unknowns
-#25 OK*
-#26 OK*
+#23 OK
+#24 OK
+#25 OK
+#26 OK
 #27 OK
 #28 not enough seeds
-#29 rr[1,] incorrect dimensions
+#29 Error in plotDims[, "area"] : incorrect number of dimensions
 #30 OK
 #31 OK
 #32 OK
