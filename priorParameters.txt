@@ -1,4 +1,4 @@
-genus code6	code4	USDA priorDist priorVDist  minDist maxDist minDiam maxDiam maxF 
+genus code6	code4	USDA priorDist priorVDist minDist maxDist minDiam maxDiam maxF 
 abies        NA NA  NA  20  5  12  30  5  30  1e+5
 acer         NA NA  NA  17  5   8  25  7  60  1e+5
 ailanthus    NA NA  NA  17  5   8  25  5  10  1e+6
