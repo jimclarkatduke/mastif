@@ -1,7 +1,7 @@
 ﻿code4,genus,minDiam,maxDiam,minDist,maxDist,maxFec,priorDist,priorVDist
-pinuEchi,pinus,10,40,12,30,3.00E+05,20,20
-pinuRigi,pinus,10,30,12,65,50000,20,30
-pinuStro,pinus,14,40,15,65,80000,20,30
-pinuTaed,pinus,12,40,14,65,1.00E+05,22,20
+pinuEchi,pinus,8,40,8,30,3.00E+05,20,20
+pinuRigi,pinus,10,30,10,65,50000,20,30
+pinuStro,pinus,8,40,10,65,80000,20,30
+pinuTaed,pinus,12,40,10,65,1.00E+05,22,20
 pinuUNKN,pinus,5,40,8,55,1.00E+06,22,30
-pinuVirg,pinus,8,25,10,38,7.00E+05,18,20
+pinuVirg,pinus,6,25,8,38,7.00E+05,18,20
